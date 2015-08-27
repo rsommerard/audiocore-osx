@@ -8,7 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		7ADA533A1B8F44EA00C52079 /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7AFD6EAF1B7942F700C8641D /* main.mm */; };
-		7ADA54D61B8F6C1A00C52079 /* CARingBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7ADA54A31B8F6C1A00C52079 /* CARingBuffer.cpp */; };
+		7ADA54D91B8FB99200C52079 /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7ADA54D81B8FB99200C52079 /* ApplicationServices.framework */; };
+		7ADA54DA1B8FB9B000C52079 /* CARingBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7ADA54A31B8F6C1A00C52079 /* CARingBuffer.cpp */; };
 		7AFD6EB71B79432000C8641D /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7AFD6EB61B79432000C8641D /* AudioToolbox.framework */; };
 		7AFD6EB91B79432A00C8641D /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7AFD6EB81B79432A00C8641D /* CoreAudio.framework */; };
 		7AFD6EBB1B79433800C8641D /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7AFD6EBA1B79433800C8641D /* AudioUnit.framework */; };
@@ -32,6 +33,7 @@
 		7ADA54A31B8F6C1A00C52079 /* CARingBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CARingBuffer.cpp; sourceTree = "<group>"; };
 		7ADA54A41B8F6C1A00C52079 /* CARingBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CARingBuffer.h; sourceTree = "<group>"; };
 		7ADA54D71B8F6C7A00C52079 /* CAAutoDisposer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CAAutoDisposer.h; sourceTree = "<group>"; };
+		7ADA54D81B8FB99200C52079 /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = System/Library/Frameworks/ApplicationServices.framework; sourceTree = SDKROOT; };
 		7AFD6EAC1B7942F700C8641D /* CAAUGraphBasedPlayThrough */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = CAAUGraphBasedPlayThrough; sourceTree = BUILT_PRODUCTS_DIR; };
 		7AFD6EAF1B7942F700C8641D /* main.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
 		7AFD6EB61B79432000C8641D /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
@@ -44,6 +46,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7ADA54D91B8FB99200C52079 /* ApplicationServices.framework in Frameworks */,
 				7AFD6EBB1B79433800C8641D /* AudioUnit.framework in Frameworks */,
 				7AFD6EB91B79432A00C8641D /* CoreAudio.framework in Frameworks */,
 				7AFD6EB71B79432000C8641D /* AudioToolbox.framework in Frameworks */,
@@ -56,6 +59,7 @@
 		7AFD6EA31B7942F700C8641D = {
 			isa = PBXGroup;
 			children = (
+				7ADA54D81B8FB99200C52079 /* ApplicationServices.framework */,
 				7AFD6EBA1B79433800C8641D /* AudioUnit.framework */,
 				7AFD6EB81B79432A00C8641D /* CoreAudio.framework */,
 				7AFD6EB61B79432000C8641D /* AudioToolbox.framework */,
@@ -141,7 +145,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7ADA54D61B8F6C1A00C52079 /* CARingBuffer.cpp in Sources */,
+				7ADA54DA1B8FB9B000C52079 /* CARingBuffer.cpp in Sources */,
 				7ADA533A1B8F44EA00C52079 /* main.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

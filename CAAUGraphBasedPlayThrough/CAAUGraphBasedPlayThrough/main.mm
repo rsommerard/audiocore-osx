@@ -7,10 +7,11 @@
 //
 
 #include <AudioToolbox/AudioToolbox.h>
+#include <ApplicationServices/ApplicationServices.h>
 #include "CARingBuffer.h"
 
 
-// #define PART_II
+#define PART_II
 
 
 #pragma mark user-data struct
@@ -21,7 +22,9 @@ typedef struct MyAUGraphPlayer {
     AUGraph graph;
     AudioUnit inputUnit;
     AudioUnit outputUnit;
+    
 #ifdef PART_II
+    AudioUnit speechUnit;
 #endif
     
     AudioBufferList *inputBuffer;
@@ -173,7 +176,7 @@ void CreateInputUnit(MyAUGraphPlayer *player) {
     // Alloc ring buffer that will hold data between the two audio devices
     player->ringBuffer = new CARingBuffer();
     
-    player->ringBuffer->Allocate(player->streamFormat.mChannelsPerFrame, player->streamFormat.mBytesPerFrame, bufferSizeFrames * 30);
+    player->ringBuffer->Allocate(player->streamFormat.mChannelsPerFrame, player->streamFormat.mBytesPerFrame, bufferSizeFrames * 3);
     
     // Set render proc to supply samples from input unit
     AURenderCallbackStruct callbackStruct;
@@ -211,7 +214,57 @@ void CreateMyAUGraph(MyAUGraphPlayer *player) {
     CheckError(AUGraphAddNode(player->graph, &outputcd, &outputNode), "AUGraphAddNode[kAudioUnitSubType_DefaultOutput] failed");
     
 #ifdef PART_II
-    // Insert Listings 8.24 - 8.27 here
+    // Add a mixer to the graph
+    AudioComponentDescription mixercd = {0};
+    mixercd.componentType = kAudioUnitType_Mixer;
+    mixercd.componentSubType = kAudioUnitSubType_StereoMixer;
+    mixercd.componentManufacturer = kAudioUnitManufacturer_Apple;
+    
+    AUNode mixerNode;
+    CheckError(AUGraphAddNode(player->graph, &mixercd, &mixerNode), "AUGraphAddNode[kAudioUnitSubType_StereoMixer] failed");
+    
+    // Add the speech synthetizer to the graph
+    AudioComponentDescription speechcd = {0};
+    speechcd.componentType = kAudioUnitType_Generator;
+    speechcd.componentSubType = kAudioUnitSubType_SpeechSynthesis;
+    speechcd.componentManufacturer = kAudioUnitManufacturer_Apple;
+    
+    AUNode speechNode;
+    CheckError(AUGraphAddNode(player->graph, &speechcd, &speechNode), "AUGraphAddNode[kAudioUnitSubType_AudioFilePlayer] failed");
+    
+    // Opening the graph opens all contained audio units but does not allocate any resources yet
+    CheckError(AUGraphOpen(player->graph), "AUGraphOpen failed");
+    
+    // Get the reference to the AudioUnit objects for the various nodes
+    CheckError(AUGraphNodeInfo(player->graph, outputNode, NULL, &player->outputUnit), "AUGraphNodeInfo failed");
+    
+    CheckError(AUGraphNodeInfo(player->graph, speechNode, NULL, &player->speechUnit), "AUGraphNodeInfo failed");
+    
+    AudioUnit mixerUnit;
+    CheckError(AUGraphNodeInfo(player->graph, mixerNode, NULL, &mixerUnit), "AUGraphNodeInfo failed");
+    
+    // Set ASBDs here
+    UInt32 propertySize = sizeof (AudioStreamBasicDescription);
+    CheckError(AudioUnitSetProperty(player->outputUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &player->streamFormat, propertySize), "Couldn't set stream format on output unit");
+    
+    CheckError(AudioUnitSetProperty(mixerUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &player->streamFormat, propertySize), "Couldn't set stream format on mixer unit bus 0");
+    
+    CheckError(AudioUnitSetProperty(mixerUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 1, &player->streamFormat, propertySize), "Couldn't set stream format on mixer unit bus 1");
+    
+    // Connections
+    // Mixer output scope / bus 0 to outputUnit input scope / bus 0
+    // Mixer input scope / bus 0 to render callback (from ringbuffer, which in turn is from inputUnit)
+    // Mixer input scope / bus 1 to speech unit output scope / bus 0
+    CheckError(AUGraphConnectNodeInput(player->graph, mixerNode, 0, outputNode, 0), "Couldn't connect mixer output(0) to outputNode (0)");
+    
+    CheckError(AUGraphConnectNodeInput(player->graph, speechNode, 0, mixerNode, 1), "Couldn't connect speech synth unit output (0) to mixer input (1)");
+    
+    AURenderCallbackStruct callbackStruct;
+    callbackStruct.inputProc = GraphRenderProc;
+    callbackStruct.inputProcRefCon = player;
+    
+    CheckError(AudioUnitSetProperty(mixerUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Global, 0, &callbackStruct, sizeof(callbackStruct)), "Couldn't set render callback on mixer unit");
+    
 #else
     // Opening the graph opens all contained audio units but does not allocate any resources yet
     CheckError(AUGraphOpen(player->graph), "AUGraphOpen failed");
@@ -237,8 +290,19 @@ void CreateMyAUGraph(MyAUGraphPlayer *player) {
     player->firstOutputSampleTime = -1;
 }
 
-// Insert Listing 8.29 here
 
+#ifdef PART_II
+
+void PrepareSpeechAU(MyAUGraphPlayer *player) {
+    SpeechChannel chan;
+    
+    UInt32 propsize = sizeof(SpeechChannel);
+    CheckError(AudioUnitGetProperty(player->speechUnit, kAudioUnitProperty_SpeechChannel, kAudioUnitScope_Global, 0, &chan, &propsize), "AudioFileGetProperty[kAudioUnitProperty_SpeechChannel] failed");
+    
+    SpeakCFString(chan, CFSTR("Il suffit d'un gramme de merde pour gâcher un kilo de caviar. Un gramme de caviar n'améliore en rien un kilo de merde."), NULL);
+}
+
+#endif
 
 int main(int argc, const char *argv[]) {
     MyAUGraphPlayer player = {0};
@@ -250,8 +314,7 @@ int main(int argc, const char *argv[]) {
     CreateMyAUGraph(&player);
     
 #ifdef PART_II
-    // Insert Listing 8.28 here
-#else
+    PrepareSpeechAU(&player);
 #endif
     
     // Start playing
